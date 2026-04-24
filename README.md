@@ -2,6 +2,11 @@
 
 created for the [TRMNL](https://trmnl.com) e-ink display.
 
+## **Changes in this fork**
+
+* Added support for ed133ut2 controlled via EPDIY board
+* Upgraded FastEPD dependency
+
 ## **Algorithm block scheme**
 
 ```mermaid
