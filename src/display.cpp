@@ -7,7 +7,7 @@
 #include <preferences_persistence.h>
 #include "DEV_Config.h"
 #define MAX_BIT_DEPTH 8
-#ifndef BOARD_TRMNL_X
+#if !defined(BOARD_TRMNL_X) && !defined(BOARD_FASTEPD)
 #define BB_EPAPER
 #include "bb_epaper.h"
 const DISPLAY_PROFILE dpList[4] = { // 1-bit and 2-bit display types for each profile
@@ -54,6 +54,14 @@ uint8_t u8SpectraPal[512]; // RGB333 mapped to closest Spectra6 color
 #else
 #include "FastEPD.h"
 FASTEPD bbep;
+// FastEPD targets mono panels and doesn't define these color constants.
+// Provide fallbacks so the BWR/BWYR helpers still compile (they are unused on mono).
+#ifndef BBEP_RED
+#define BBEP_RED 3
+#endif
+#ifndef BBEP_YELLOW
+#define BBEP_YELLOW 2
+#endif
 const uint8_t u8_graytable[] = {
 /* 0 */  2, 2, 1, 1, 1, 1, 1, 1,
 /* 1 */  2, 2, 2, 2, 1, 1, 2, 1,
@@ -110,8 +118,8 @@ void display_init(void)
     bbep.setPanelType(dpList[iTempProfile].OneBit); // must be set BEFORE calling initio
     bbep.initIO(EPD_DC_PIN, EPD_RST_PIN, EPD_BUSY_PIN, EPD_CS_PIN, EPD_MOSI_PIN, EPD_SCK_PIN, 8000000);
 #else
-    bbep.initPanel(BB_PANEL_EPDIY_V7_16); //, 26000000);
-    bbep.setPanelSize(1872, 1404, BB_PANEL_FLAG_MIRROR_X);
+    bbep.initPanel(BB_PANEL_EPDIY_V7); //, 26000000);
+    bbep.setPanelSize(1600, 1200);
 #endif
     Log_info("dev module end");
 }
@@ -123,7 +131,11 @@ void display_init(void)
  */
 void display_set_light_sleep(uint8_t enabled)
 {
+#ifdef BB_EPAPER
     bbep.setLightSleep(enabled);
+#else
+    (void)enabled; // FastEPD doesn't expose a light-sleep toggle
+#endif
 }
 
 /**
@@ -154,8 +166,8 @@ void display_reset(void)
 {
     Log_info("e-Paper Clear start");
     bbep.fillScreen(BBEP_WHITE);
-    bbep.setLightSleep(true);
 #ifdef BB_EPAPER
+    bbep.setLightSleep(true);
     if (!apiDisplayResult.response.maximum_compatibility) {
         bbep.refresh(REFRESH_FAST, true);
     } else {
@@ -1481,7 +1493,7 @@ void display_show_msg(uint8_t *image_buffer, MSG message_type)
 #endif
     }
 
-#ifdef BOARD_TRMNL_X
+#if defined(BOARD_TRMNL_X) || defined(BOARD_FASTEPD)
     bbep.setFont(Inter_18);
 #else
     bbep.setFont(nicoclean_8);
@@ -1941,7 +1953,7 @@ void display_show_msg(uint8_t *image_buffer, MSG message_type, String friendly_i
 #endif
     }
 
-#ifdef BOARD_TRMNL_X
+#if defined(BOARD_TRMNL_X) || defined(BOARD_FASTEPD)
     bbep.setFont(Inter_18);
 #else
     bbep.setFont(nicoclean_8);
@@ -2004,7 +2016,7 @@ void display_show_msg(uint8_t *image_buffer, MSG message_type, String friendly_i
         UWORD y_start = 340;
         UWORD font_width = 18; // DEBUG
         Paint_DrawMultilineText(0, y_start, message.c_str(), width, font_width, BBEP_BLACK, BBEP_WHITE,
-#ifdef BOARD_TRMNL_X
+#if defined(BOARD_TRMNL_X) || defined(BOARD_FASTEPD)
         Inter_18, true);
 #else
         nicoclean_8, true);

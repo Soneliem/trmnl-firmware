@@ -2289,7 +2289,7 @@ static uint8_t *storedLogoOrDefault(int iType)
       }
    }
   }
-#ifdef BOARD_TRMNL_X
+#if defined(BOARD_TRMNL_X) || defined(BOARD_FASTEPD)
     return const_cast<uint8_t *>(logo_medium);
 #else
   if (iType == 0) {

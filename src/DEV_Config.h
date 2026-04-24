@@ -121,7 +121,7 @@
    #define EPD_BUSY_PIN 4
    // DEBUG - remove the fake battery line after testing
    #define FAKE_BATTERY_VOLTAGE
-#elif defined(BOARD_TRMNL_X)
+#elif defined(BOARD_TRMNL_X) || defined(BOARD_FASTEPD)
    #define FAKE_BATTERY_VOLTAGE
 
 #elif defined(BOARD_SEEED_RETERMINAL_E1001) || defined(BOARD_SEEED_RETERMINAL_E1002)
